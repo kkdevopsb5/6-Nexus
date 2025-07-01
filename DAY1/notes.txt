@@ -1,0 +1,278 @@
+Nexus by KK FUNDA
+=================
+
+--> Explain the flow diagram.
+
+
+dev1  --> GitHub ---> maven[.war] --->  tomcat 
+
+dev1 --> GitHub ----> maven [.war] ---> tomcat 
+
+
+
+Introduction
+============
+
+--> Nexus is a repository manager that serves as a central hub for managing binary artifacts such as libraries, Docker images, and other build artifacts.
+
+--> It provides a secure and efficient way to store, distribute, and manage software components and dependencies throughout the software development lifecycle.
+
+--> It is a Open Source software.
+
+--> It is java based repository, Means they developed using JAVA.
+
+
+
+Types 
+=======
+
+1. Nexus ---> [sonatype vendor] ---> called as a sonatype nexus
+2. Jfrog .....
+
+
+
+git -->GitHub/Gitlab/bitbucket  --->
+
+
+
+
+
+
+
+
+
+IQ] what is the difference between GitHub and nexus?
+
+GitHub: used to manage the source code, Dockerfile  
+Nexus : used to manage the build artifacts and docker images
+
+
+
+
+
+
+
+
+
+Nexus installation
+==================
+
+prerequsites
+------------
+
+--> java 1.8 or java 8 is required for 3.x version
+
+
+
+Hardware requirements
+----------------------
+--> min 2GB RAM required for Nexus and 1 GB RAM for server, so we are going with "t2.medium"
+
+--> It is a cross platform software.
+
+--> It is not a installation software, Has only in the archive file.
+
+NOTE: After installation of nexus software , Two directories are created.
+     
+      1. nexus3.x
+      2. sonatype_work ----> common for all versions.
+
+
+
+
+Installation starts
+===================
+
+
+
+step 1: Launch an EC2 instance [t2.medium]
+
+step 2: connect to that server.
+
+step 3: Before installation check the RAM once: "free -h "
+
+step 4: sudo su -
+
+step 5: check whether java is installed or not.
+
+     javac -version
+
+step 6: Install java
+ 
+sudo rpm --import https://yum.corretto.aws/corretto.key
+sudo curl -Lo /etc/yum.repos.d/corretto.repo https://yum.corretto.aws/corretto.repo
+sudo yum install -y java-1.8.0-amazon-corretto-devel --nogpgcheck
+
+
+
+java -version
+
+step 7: 
+
+cd /opt	
+
+yum install tar wget tree -y
+
+step 8: 
+
+
+
+
+
+wget https://download.sonatype.com/nexus/3/nexus-3.70.1-02-java8-unix.tar.gz
+
+
+step 9: 
+
+tar -zxvf nexus-3.70.1-02-java8-unix.tar.gz
+
+
+step 10:
+
+mv /opt/nexus-3.70.1-02 /opt/nexus
+
+
+
+****NOTE: As a good security practice, Nexus is not advised to run nexus service as a root user, so create a new user called nexus and grant sudo access to manage nexus services as follows.
+
+
+step 11: 
+
+useradd nexus
+
+step 12: Give the sudo access to nexus user
+
+visudo
+nexus ALL=(ALL) NOPASSWD: ALL
+
+step 13: Change the owner and group permissions to /opt/nexus and /opt/sonatype-work directories.
+
+chown -R nexus:nexus /opt/nexus
+chown -R nexus:nexus /opt/sonatype-work
+
+chmod -R 775 /opt/nexus
+chmod -R 775 /opt/sonatype-work
+
+
+step 14: Open /opt/nexus/bin/nexus.rc file and  uncomment run_as_user parameter and set as nexus user.
+
+vi /opt/nexus/bin/nexus.rc
+run_as_user="nexus"
+
+#step 15: Create nexus as a service
+
+#ln -s /opt/nexus/bin/nexus /etc/init.d/nexus
+
+
+step 16: Switch as a nexus user and start the nexus service as follows.
+
+sudo su - nexus
+
+
+
+
+step 17: Enable the nexus services
+
+sudo systemctl status nexus
+
+sudo systemctl enable nexus
+
+
+
+/***
+
+sudo vi /etc/systemd/system/nexus.service
+
+[Unit]
+Description=nexus service
+After=network.target
+
+[Service]
+Type=forking
+LimitNOFILE=65536
+ExecStart=/opt/nexus/bin/nexus start
+ExecStop=/opt/nexus/bin/nexus stop
+User=nexus
+Restart=on-abort
+
+[Install]
+WantedBy=multi-user.target
+
+
+
+sudo systemctl daemon-reexec
+sudo systemctl daemon-reload
+
+
+sudo systemctl enable nexus
+sudo systemctl start nexus
+sudo systemctl status nexus
+
+
+****/
+
+step 18: Start the nexus service
+
+sudo systemctl start nexus
+
+step 19:  Access the Nexus server from Laptop/Desktop browser.
+
+http://52.66.73.219:8081/
+
+step 20: click on login
+
+NOTE: Before 3.15 version uname and password is admin and admin123 , But now process changed.
+
+cat /opt/sonatype-work/nexus3/admin.password
+
+Uname: admin   pwd: kkfunda
+
+
+
+
+Troubleshooting
+---------------------
+nexus service is not starting?
+
+a)make sure need to change the ownership and group to /opt/nexus and /opt/sonatype-work directories and permissions (775) for nexus user.
+b)make sure you are trying to start nexus service with nexus user.
+c)check java is installed or not using java -version command.
+d) check the nexus.log file which is available in  /opt/sonatype-work/nexus3/log  directory.
+
+Unable to access nexus URL?
+-------------------------------------
+a)make sure port 8081 is opened in security groups in AWS ec2 instance.
+
+
+=====================================================================================
+
+
+
+
+IQ] How to change the port number and context path?
+
+step 1: cd /opt/nexus/etc/
+
+step 2: vi nexus-default.properties
+
+step 3: sudo systemctl restart nexus
+
+NOTE: please make sure to enable the port in security groups.
+
+
+
+===============================================================================================
+
+
+NOTE: Before login into server the browse options are opened, How to close this?
+
+login as a root user --> go to settings --> security --> Anonymous Access --> disable the icon
+
+
+=============================================================================
+
+How to change the password?
+
+ login as root user --> click on admin --> give all the details
+
+====================================================================================
