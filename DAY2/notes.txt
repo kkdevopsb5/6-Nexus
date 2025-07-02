@@ -1,0 +1,139 @@
+How to create a repository?
+
+login as a admin --> settings --> create repository --> maven2(hosted)--> give name as jio-snapshot -->
+select version policy [snapshot] --> scroll down ---> create repository. 
+
+
+login as a admin --> settings --> create repository --> maven2(hosted)--> give name as jio-release -->
+select version policy [release] --> scroll down ---> create repository. 
+
+
+NOTE: For each project we are going to create two types of repositories.
+
+      1. jio-snapshot
+      2. jio-release
+
+NOTE: Each repository we have separate URL
+  
+     http://3.108.185.164:8090/repository/jio-release-repo/
+     http://3.108.185.164:8090/repository/jio-snapshot-repo/
+
+
+
+===================================================================================================
+
+
+
+
+
+How to integrate nexus with maven?
+==================================
+
+step 1: connect to maven server, Where java projects are available
+
+step 2: where to keep our repository details?
+
+update the details in pom.xml
+
+          <distributionManagement>
+
+            <repository>
+              <id>nexus</id>
+              <name>KK FUNDA Releases Nexus Repository</name>
+              <url>http://13.235.244.97:9676/repository/jio-release/</url>
+            </repository>
+
+            <snapshotRepository>
+              <id>nexus</id>
+              <name>KK FUNDA Snapshot Nexus Repository </name>
+              <url>http://13.235.244.97:9676/repository/jio-snapshot/</url>
+            </snapshotRepository>
+
+        </distributionManagement>
+
+step 3: Where we need to keep nexus credentials?
+
+--> In SonarQube we updated credentials in pom.xml
+--> In nexus, repo details in pom.xml and credentials in /opt/apache-maven-3.9.10/conf/settings.xml
+
+   <server>
+      <id>nexus</id>
+      <username>admin</username>
+      <password>password</password>
+    </server>
+
+
+==============================================================================================
+
+
+
+IQ] How to deploy antifactory into nexus?
+
+step 1: go to project directory , Where the pom.xml is available.
+
+step 2: mvn clean deploy
+
+NOTE: if you execute "mvn clean deploy" multiple times , Each time it will upload war file into "nexus snapshot repository"
+
+
+====================================================================================================
+
+
+
+
+IQ] why it is always uploading into snapshot repo, why not release repo?
+
+ANS: In pom.xml <version> tag we defined "SNAPSHOT" , If you remove that tag then it will store in the release repo.
+
+add  <version>1.0.0</version>
+
+
+NOTE: one version, you can create only once, If you are tying to deploy again without changing the version, you will get bad request error (400)
+
+   mvn clean deploy ----> Build will fail.
+
+
+settings ---> select repo --> policy --> allow redeploy ---> save
+
+
+again disable the redeploy
+
+
+  mvn clean deploy
+
+
+
+
+
+====================================================================================================
+
+
+
+IQ] what is the difference between snapshot and release ?
+
+SNAPSHOT: used in continuous deployment.
+Release : Before deploy into production.
+
+IQ] How to store artifacts into maven local repository?
+
+   mvn clean install
+
+IQ] How to store artifacts into maven remote repository?
+
+  mvn clean deploy
+
+
+=====================================================================================================
+
+
+
+Requirement : release 1.0.0 has some bugs, I want to redeploy the artifact with the same version.
+
+sol:  settings --> repository --> jio-release --> scroll down --> Hosted --> allow redeploy --> save
+
+
+Then mvn clean deploy ---> It will redeploy.
+
+
+
+===================================================================================================
